@@ -25,11 +25,11 @@ license:             MIT
 license-file:        LICENSE.md
 
 -- The package author(s).
-author:              Jonatan H Sundqvist
+author:              Jordan E Medlock
 
 -- An email address to which users can send suggestions, bug reports, and
 -- patches.
-maintainer:          jonatanhsundqvist@gmail.com
+maintainer:          jordanemedlock@gmail.com
 
 -- A copyright notice.
 -- copyright:
@@ -71,7 +71,7 @@ library
                        
   -- Other library packages from which modules are imported.
   build-depends:       base == 4.*,
-                       lens <= 4.14,
+                       lens,
                        linear,
                        template-haskell
 

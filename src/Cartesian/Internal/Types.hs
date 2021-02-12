@@ -39,7 +39,7 @@ module Cartesian.Internal.Types where
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 -- We'll need these
 ------------------------------------------------------------------------------------------------------------------------------------------------------
-import Control.Lens (Simple, Lens, lens)
+import Control.Lens (Lens', Lens, lens)
 
 import Data.Complex (Complex(..))
 
@@ -60,7 +60,7 @@ import Linear.V4
 
 -- | A lens focusing on a single [vector-]component in a BoundingBox
 type BoxLens v v' f f' = Lens (BoundingBox (v f)) (BoundingBox (v' f')) f f'
-
+type BoxLens' v f = BoxLens v v f f
 
 -- | An axis represented as (begin, length)
 type Axis a = (a, a)
@@ -112,9 +112,9 @@ data Interval r    = Interval (Inclusivity r) (Inclusivity r)
 -- Classes -------------------------------------------------------------------------------------------------------------------------------------------
 
 -- TODO: How do you generate lenses for non-record types (?)
-class HasX a f | a -> f where { x :: Simple Lens a f }
-class HasY a f | a -> f where { y :: Simple Lens a f }
-class HasZ a f | a -> f where { z :: Simple Lens a f }
+class HasX a f | a -> f where { x :: Lens' a f }
+class HasY a f | a -> f where { y :: Lens' a f }
+class HasZ a f | a -> f where { z :: Lens' a f }
 
 -- Instances -----------------------------------------------------------------------------------------------------------------------------------------
 

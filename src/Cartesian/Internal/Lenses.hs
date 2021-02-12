@@ -42,7 +42,7 @@ module Cartesian.Internal.Lenses where
 -- We'll need these
 --------------------------------------------------------------------------------------------------------------------------------------------
 import Control.Lens (makeLensesWith, lensRules, lensField, lens,
-                     Simple, Lens,
+                     Lens', Lens,
                      (^.), (.~), (&),
                      _1, _2,
                      DefName(TopName))
@@ -84,7 +84,7 @@ makeLensesWith (lensRules & lensField .~ (\_ _ name -> [TopName (mkName $ dropSu
 -- TODO: Change the type to make it play more nicely with 'pinned' (?)
 -- TODO: - What's the proper way of 'lifting' lenses (such as 'pinnedAxis'), so they work on multiple fields.
 --         This is not mucher better than it used to be when we didn't have the 'pinnedAxis' helper...
-pinnedAxis :: Num n => n -> Simple Lens (Axis n) (Axis n)
+pinnedAxis :: Num n => n -> Lens' (Axis n) (Axis n)
 pinnedAxis to = lens get set
   where
     get   (begin', len)   = (begin' + to*len, len)
@@ -104,7 +104,7 @@ pinnedAxis to = lens get set
 -- > V2 (13.0,6.0) (33.0,18.0)
 -- @
 --
-pinned :: (Applicative v, Num n) => v n -> Simple Lens (BoundingBox (v n)) (Axes v n)
+pinned :: (Applicative v, Num n) => v n -> Lens' (BoundingBox (v n)) (Axes v n)
 pinned to f = axes (fmap undo . f . as) -- _.traverse._ to
   where
     toPinned   (pin, (begin', len)) = (begin' + pin*len, len)
@@ -115,7 +115,7 @@ pinned to f = axes (fmap undo . f . as) -- _.traverse._ to
 
 
 -- | Focuses on a single axis of the box
-axis :: (Applicative v, Num n) => Simple Lens (Axes v n) (Axis n) -> Simple Lens (BoundingBox (v n)) (Axis n)
+axis :: (Applicative v, Num n) => Lens' (Axes v n) (Axis n) -> Lens' (BoundingBox (v n)) (Axis n)
 axis which = axes.which
   -- where
   --   get box = (box^.corner.which, box^.size.which)
@@ -144,7 +144,7 @@ extents f = axes (fmap (fmap unbounds) . f . fmap bounds)
 -- TODO: Polish description
 -- TODO: Loosen constraint on n (✓)
 -- axes which.pinned (V1 step).x._1 -- lens get set
-side :: (Applicative v, Num n) => Simple Lens (Axes v n) (Axis n) -> Simple Lens (Axis n) n -> Simple BoxLens v n
+side :: (Applicative v, Num n) => Lens' (Axes v n) (Axis n) -> Lens' (Axis n) n -> BoxLens' v n
 side axis' endpoint' = extents.axis'.endpoint'
 
 -- TODO: sides, vertices
@@ -162,49 +162,49 @@ end = lens (\(Line _ b) -> b) (\(Line a _) b -> Line a b)
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 
-width :: (HasX (v f) f) => Simple Lens (BoundingBox (v f)) f
+width :: (HasX (v f) f) => Lens' (BoundingBox (v f)) f
 width = size.x
 
 
-height :: (HasY (v f) f) => Simple BoxLens v f
+height :: (HasY (v f) f) => BoxLens' v f
 height = size.y
 
 
-depth :: (HasZ (v f) f) => Simple BoxLens v f
+depth :: (HasZ (v f) f) => BoxLens' v f
 depth = size.z
 
 -- Sides (so much boilerplate it makes me cry) ---------------------------------------------------------------------------------------------
 
-left :: (Applicative v, HasX (Axes v n) (Axis n), Num n) => Simple BoxLens v n
+left :: (Applicative v, HasX (Axes v n) (Axis n), Num n) => BoxLens' v n
 left = side x _1
 
 
-right :: (Applicative v, HasX (Axes v n) (Axis n), Num n) => Simple BoxLens v n
+right :: (Applicative v, HasX (Axes v n) (Axis n), Num n) => BoxLens' v n
 right = side x _2
 
 
 -- NOTE: Y-axis points upwards (cf. README.md)
-bottom :: (Applicative v, HasY (Axes v n) (Axis n), Num n) => Simple BoxLens v n
+bottom :: (Applicative v, HasY (Axes v n) (Axis n), Num n) => BoxLens' v n
 bottom = side y _1
 
 
 -- Note: Y-axis points upwards (cf. README.md)
-top :: (Applicative v, HasY (Axes v n) (Axis n), Num n) => Simple BoxLens v n
+top :: (Applicative v, HasY (Axes v n) (Axis n), Num n) => BoxLens' v n
 top = side y _2
 
 
 -- NOTE: Z-axis points inwards (forwards) (cf. README.md)
-front :: (Applicative v, HasZ (Axes v n) (Axis n), Num n) => Simple BoxLens v n
+front :: (Applicative v, HasZ (Axes v n) (Axis n), Num n) => BoxLens' v n
 front = side z _1
 
 
 -- NOTE: Z-axis points inwards (forwards) (cf. README.md)
-back :: (Applicative v, HasZ (Axes v n) (Axis n), Num n) => Simple BoxLens v n
+back :: (Applicative v, HasZ (Axes v n) (Axis n), Num n) => BoxLens' v n
 back = side z _2
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 
 -- |
 -- TODO: This should probably yield a vector (rename or redesign)
-centre :: (Applicative v, Fractional f) => Simple Lens (BoundingBox (v f)) (Axes v f)
+centre :: (Applicative v, Fractional f) => Lens' (BoundingBox (v f)) (Axes v f)
 centre = pinned (pure $ 1/2)
